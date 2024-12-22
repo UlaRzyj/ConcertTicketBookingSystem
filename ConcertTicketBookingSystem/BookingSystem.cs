@@ -27,7 +27,9 @@ public class BookingSystem
             Console.WriteLine("Podaj ilosc dostepnych miejsc: ");
             String availableSeatsString = Console.ReadLine();
             int availableSeats = int.Parse(availableSeatsString);
-            Concert concert = new Concert(name, date, location, availableSeats);
+            Console.WriteLine("Podaj typ koncertu (Regular/VIP): ");
+            var type = Console.ReadLine();
+            Concert concert = new Concert(name, date, location, availableSeats, type);
         }
 
         
@@ -69,43 +71,32 @@ public class BookingSystem
         }
         else
         {
-            Console.WriteLine("Podaj nazwe koncertu: ");
+            Console.WriteLine("Podaj nazwe koncertu:");
             var concertName = Console.ReadLine();
-            var random = new Random();
-            var firstPrice = random.Next(50, 100);
-            var secondPrice = random.Next(100, 200);
-            var thirdPrice = random.Next(200, 500);
-            Console.WriteLine($"Wybierz cene z podanych - $ {firstPrice}, $ {secondPrice}, $ {thirdPrice}");
-            var price = Console.ReadLine();
-            Console.WriteLine("Podaj numer miejsca: ");
-            var concertSeats = Seat.concerstSeatsList.Where(seat => seat.ConcertName == concertName);
-            foreach (var seat in concertSeats)
+            foreach (var concert in Concert.VipConcerts)
             {
-                for(var i = 0; i < seat.Seats.Count; i++)
+                if(concert.Name == concertName)
                 {
-                    Console.Write(seat.Seats[i] + ", ");
-                }
-            }
-            var seatNumberString = Console.ReadLine();
-            var seatNumber = int.Parse(seatNumberString);
-            Ticket ticket = new Ticket(concertName, price, seatNumber);
-            foreach (var seat in concertSeats)
-            {
-                for(var i = 0; i < seat.Seats.Count; i++)
-                {
-                    if(seat.Seats[i] == seatNumber)
+                    Console.WriteLine("Wybrales koncert VIP, podaj hasło dostępu:");
+                    var password = Console.ReadLine();
+                    if (password == "VIP")
                     {
-                        seat.Seats.RemoveAt(i);
+                        var vipConcert = new VipConcert();
+                        vipConcert.Reservation(concertName);
+                    }
+                    else if(password != "VIP")
+                    {
+                        Console.WriteLine("Błędne hasło");
+                        return;
                     }
                 }
             }
-
-            var concertsNumber = Concert.Concerts.Count;
-            for (int i = 0; i < concertsNumber; i++)
+            foreach (var concert in Concert.RegularConcerts)
             {
-                if (Concert.Concerts[i].Name == concertName)
+                if(concert.Name == concertName)
                 {
-                    Concert.Concerts[i].AvailableSeats -= 1;
+                    var regularConcert = new RegularConcert();
+                    regularConcert.Reservation(concertName);
                 }
             }
         }
@@ -156,26 +147,27 @@ public class BookingSystem
             Console.WriteLine("Podaj numer miejsca, który chcesz anulować: ");
             var seatNumberString = Console.ReadLine();
             var seatNumber = int.Parse(seatNumberString);
-            foreach (var ticket in Ticket.Tickets)
+            for (var x = 0; x < Ticket.Tickets.Count; x++)
             {
-                if (ticket.Concert == concertName && ticket.SeatNumber == seatNumber)
+                if (Ticket.Tickets[x].Concert == concertName && Ticket.Tickets[x].SeatNumber == seatNumber)
                 {
-                    Ticket.Tickets.Remove(ticket);
-                    var concertSeats = Seat.concerstSeatsList.Where(seat => seat.ConcertName == concertName);
-                    foreach (var seat in concertSeats)
-                    {
-                        seat.Seats.Add(seatNumber);
-                    }
-                    var concertsNumber = Concert.Concerts.Count;
-                    for (int i = 0; i < concertsNumber; i++)
-                    {
-                        if (Concert.Concerts[i].Name == concertName)
-                        {
-                            Concert.Concerts[i].AvailableSeats += 1;
-                        }
-                    }
+                    Ticket.Tickets.RemoveAt(x);
+                }
+            }
+            var concertSeats = Seat.concerstSeatsList.Where(seat => seat.ConcertName == concertName);
+            foreach (var seat in concertSeats)
+            {
+                seat.Seats.Add(seatNumber);
+            }
+            var concertsNumber = Concert.Concerts.Count;
+            for (int i = 0; i < concertsNumber; i++)
+            {
+                if (Concert.Concerts[i].Name == concertName)
+                {
+                    Concert.Concerts[i].AvailableSeats += 1;
                 }
             }
         }
     }
+    
 }
